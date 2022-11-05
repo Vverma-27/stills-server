@@ -1,0 +1,15 @@
+version: "3"
+services:
+  node-app:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: development
+    volumes:
+      - "./:/app"
+      - "/app/node_modules"
+      - "./serviceAccountKey.json:/app/serviceAccountKey.json"
+    env_file:
+      - ./.env.local
+    command: yarn dev

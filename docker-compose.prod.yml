@@ -1,0 +1,11 @@
+version: '3'
+services:
+  node-app:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      args:
+        NODE_ENV: production
+    env_file:
+      - fileName: ./.env.production
+    command: yarn start
