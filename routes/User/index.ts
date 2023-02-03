@@ -2,18 +2,34 @@ import express, { Request, Response } from "express";
 import { getAuth } from "firebase-admin/auth";
 import authMiddleware from "../../middleware/auth";
 import admin from "../../services/firebase";
+import { emailExists, phoneNumberExists } from "../../utils/firebase";
 import {
   checkUsernameValidity,
   getUserData,
   setUserData,
-} from "../../utils/rtdb";
+  updateUserData,
+} from "../../utils/neo4j";
 const router = express.Router();
 
 // router.use(authMiddleware);
 router.route("/").post(async (req: Request, res: Response) => {
   const { user } = req.body;
+  console.log("🚀 ~ file: index.ts:17 ~ router.route ~ user", user);
   try {
     const actualUser = await setUserData(user);
+    res.json({ user: actualUser });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+router.route("/").patch(authMiddleware, async (req: Request, res: Response) => {
+  const { user } = req.body;
+  try {
+    const actualUser = await updateUserData(user);
+    console.log(
+      "🚀 ~ file: index.ts ~ line 27 ~ router.route ~ actualUser",
+      actualUser
+    );
     res.json({ user: actualUser });
   } catch (error) {
     res.status(500).send(error);
@@ -39,18 +55,29 @@ router.route("/").get(async (req: Request, res: Response) => {
     res.status(500).send(error);
   }
 });
-router.route("/phoneValid").post(async (req: Request, res: Response) => {
+router.route("/phoneExists").post(async (req: Request, res: Response) => {
   try {
     const { phoneNumber } = req.body;
     console.log(
       "🚀 ~ file: index.ts ~ line 15 ~ router.route ~ phoneNumber",
       phoneNumber
     );
-    const resp = await getAuth(admin).getUserByPhoneNumber(phoneNumber);
-    console.log(
-      "🚀 ~ file: index.ts ~ line 17 ~ router.route ~ resp",
-      Boolean(resp)
-    );
+    await phoneNumberExists(phoneNumber);
+    return res.json({ valid: true });
+  } catch (e) {
+    const { code } = e;
+    if (code === "auth/user-not-found") {
+      return res.json({ valid: false });
+    }
+    res.status(500).send(e);
+  }
+});
+
+router.route("/emailExists").post(async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    console.log("🚀 ~ file: index.ts ~ line 15 ~ router.route ~ email", email);
+    await emailExists(email);
     return res.json({ valid: true });
   } catch (e) {
     const { code } = e;

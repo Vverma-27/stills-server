@@ -45,6 +45,30 @@ export const setUserData = async (payload: IUser) => {
   }
 };
 
+export const updateUserData = async (payload: Partial<IUser>) => {
+  console.log("🚀 ~ file: rtdb.ts ~ line 18 ~ setUserData ~ payload", payload);
+  try {
+    const dbRef = getDatabase(admin).ref();
+    const userRef = dbRef.child("users/" + payload.uid);
+    const response = await userRef.update(payload);
+    console.log(
+      "🚀 ~ file: rtdb.ts ~ line 56 ~ updateUserData ~ response",
+      response
+    );
+    // if (!payload.username)
+    //   payload.username = `${payload.email?.split("@")[0]}${createdAt
+    //     .split("T")[0]
+    //     .split("-")
+    //     .map((s) => s.slice(0, 2))
+    //     .join("")}`;
+    return {
+      ...payload,
+    };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const checkUsernameValidity = async (username: string) => {
   try {
     const dbRef = getDatabase(admin).ref();
@@ -79,6 +103,23 @@ export const getUserData = async (uid: string) => {
       return userPromise.val();
     } else {
       return false;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getUserFriends = async (uid: string) => {
+  // console.log("🚀 ~ file: rtdb.ts ~ line 72 ~ getUserData ~ uid", uid);
+  try {
+    const dbRef = getDatabase(admin).ref();
+    const userRef = dbRef.child("friends/" + uid);
+    const userPromise = await userRef.get();
+    if (userPromise.exists()) {
+      // console.log(userPromise.val());
+      return userPromise.val();
+    } else {
+      return [];
     }
   } catch (error) {
     console.log(error);

@@ -8,11 +8,14 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
       req.headers.authtoken
     );
     getAuth(admin) //@ts-ignore
-      .verifyIdToken(req.headers.authtoken)
-      .then(() => {
+      .verifyIdToken(req.headers.authtoken, true)
+      .then((decodedToken) => {
+        const { uid } = decodedToken;
+        req.headers.uid = uid;
         next();
       })
-      .catch(() => {
+      .catch((e) => {
+        console.log(e);
         res.status(403).send("Unauthorized");
       });
   } else {

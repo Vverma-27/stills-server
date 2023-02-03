@@ -12,4 +12,33 @@ services:
       - "./serviceAccountKey.json:/app/serviceAccountKey.json"
     env_file:
       - ./.env.local
+    depends_on:
+      - neo
     command: yarn dev
+  neo:
+    # The image to use
+    image: neo4j:latest
+    # map the ports so we can check the db server is up
+    ports:
+      - 7474:7474
+      - 7687:7687
+    # mounting a named volume to the container to track db data
+    volumes:
+      - neo4j_data:/data/
+    env_file:
+      - .env.neo4j
+  ngrok:
+    image: shkoliar/ngrok:latest
+    ports:
+      - 4551:4551
+    links:
+      - node-app
+    environment:
+      - DOMAIN=http://192.168.43.39
+      - PORT=3000
+      - AUTH_TOKEN=2HGXohPnxw09zkvlk2XEAojZn4e_5YgC5Gbjq29eQm3K3K5xs
+    ## Defining the Neo4j Database Service
+
+## volumes to be generated, these are saved somewhere for repeated use by docker
+volumes:
+  neo4j_data:
